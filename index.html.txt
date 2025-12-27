@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NJALA UNIVERSITY - Daniel Research Topic Hunt V 1.0</title>
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3c72">
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3c72;
+            --secondary: #2a5298;
+            --epi: #f5576c;
+            --env: #4caf50;
+            --soc: #ff9800;
+            --clin: #e91e63;
+            --dark: #1a202c;
+            --download-topic: #007bff;
+            --download-guide: #28a745;
+            --orange: #FF6600;
+            --afri: #00AEEF;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; margin: 0; padding: 10px; color: var(--dark); }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.2); overflow: hidden; }
+        
+        .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 40px 20px; text-align: center; }
+        .ui-body { padding: 30px; }
+
+        .geo-hub { 
+            background: #f8fafc; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 2px solid #e2e8f0;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;
+        }
+        select, input { width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 12px; font-size: 14px; outline: none; }
+        select { display: none; }
+        #continent, #country { display: block; }
+
+        .btn-matrix { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 35px; }
+        button { padding: 16px; border: none; border-radius: 12px; font-weight: bold; color: white; cursor: pointer; transition: 0.3s; font-size: 13px; }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        
+        .btn-bio { background: var(--primary); }
+        .btn-epi { background: var(--epi); }
+        .btn-env { background: var(--env); }
+        .btn-soc { background: var(--soc); }
+        .btn-clin { background: var(--clin); }
+
+        .topic-card { background: white; border-left: 10px solid var(--primary); padding: 30px; margin-bottom: 40px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .topic-card h2 { color: var(--primary); font-size: 1.5em; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .section-desc { margin-top: 20px; padding: 15px; background: #fdfdfd; border-radius: 10px; border-left: 4px solid #ddd; }
+        .section-desc h4 { color: var(--secondary); margin-bottom: 8px; text-transform: uppercase; font-size: 0.85em; font-weight: bold; }
+        .section-desc p, .section-desc li { font-size: 0.95em; color: #4a5568; line-height: 1.6; margin: 0; }
+        .section-desc ul { margin-top: 10px; padding-left: 20px; }
+
+        .action-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
+        .download-group { position: relative; display: inline-block; }
+        .format-dropdown { display: none; position: absolute; bottom: 100%; left: 0; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 10; min-width: 140px; overflow: hidden; }
+        .format-dropdown button { width: 100%; border-radius: 0; background: white; color: var(--dark); border-bottom: 1px solid #eee; font-size: 12px; padding: 12px; text-align: left; }
+        .format-dropdown button:hover { background: #f0f4f8; }
+        .download-group:hover .format-dropdown { display: block; }
+
+        .view-btn { background: var(--dark); }
+        .download-t-btn { background: var(--download-topic); }
+        .download-g-btn { background: var(--download-guide); }
+
+        /* Support Hero */
+        .support-hero { background: #fff; padding: 50px 20px; text-align: center; border-top: 2px solid #eee; }
+        .payment-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
+        .payment-card { flex: 1; min-width: 280px; max-width: 350px; padding: 30px; border-radius: 20px; color: white; text-align: left; box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+        .orange-card { background: linear-gradient(135deg, var(--orange) 0%, #ff9800 100%); }
+        .afri-card { background: linear-gradient(135deg, var(--afri) 0%, #0072BC 100%); }
+        .payment-name { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; display: block; }
+        .payment-number { font-size: 1.8em; font-weight: 900; }
+
+        #guideOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; padding: 20px; }
+        .guide-content { background: white; max-width: 900px; margin: 20px auto; padding: 50px; border-radius: 25px; }
+        
+        .footer { background: #1a202c; color: #cbd5e0; padding: 40px; text-align: center; }
+        .tribute-box { margin: 20px auto; max-width: 800px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; color: #fff; font-style: italic; border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+
+<div id="guideOverlay">
+    <div class="guide-content" id="guideInner"></div>
+    <div style="text-align: center;"><button onclick="closeGuide()" style="background: #f44336; margin-bottom: 40px; width: 220px; padding: 15px; border-radius: 10px; color: white; border: none; font-weight: bold; cursor: pointer;">Close Blueprint</button></div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0; font-size: 1.6em; letter-spacing: 5px; font-weight: 300;">NJALA UNIVERSITY</h2>
+        <h1 style="margin: 5px 0 0 0; font-size: 2.5em;">🎓 SCHOOL OF PUBLIC HEALTH</h1>
+        <p style="margin-top: 10px; font-size: 1.1em; opacity: 0.9; font-weight: bold; color: #ffeb3b;">DANIEL RESEARCH TOPIC HUNT V 1.0</p>
+        <div style="font-size: 0.85em; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+            <p><strong>Dean:</strong> Prof. Kemoh Rogers | <strong>HOD:</strong> Dr. Umar Bangura</p>
+            <p style="margin-top:5px; opacity:0.8;">Mentors: Mr. Joseph Lamin | Mr. Alhassan Mayehi | Mr. Emmanuel Fino | Mr. Andrew Moseray | Mr. Patrick Fatorma | Mr. Sullay Kalokoh | Mr. Augustine Moseray</p>
+        </div>
+    </div>
+
+    <div class="ui-body">
+        <div class="geo-hub">
+            <select id="continent" onchange="handleContinentChange()"><option value="Africa">Africa (National Data Only)</option></select>
+            <select id="country" onchange="handleCountryChange()"><option value="">1. Select Country</option></select>
+            <select id="level3" onchange="handleLevel3Change()"><option value="">2. Province / Region</option></select>
+            <select id="level4" onchange="handleLevel4Change()"><option value="">3. District (16 Sierra Leone Districts)</option></select>
+            <select id="level5"><option value="">4. Chiefdom / Town</option></select>
+            <input type="text" id="customVillage" placeholder="5. Type Village / Community / City">
+        </div>
+
+        <div class="btn-matrix">
+            <button class="btn-bio" onclick="generate('Biostatistics')">Biostatistics (5 Topics)</button>
+            <button class="btn-epi" onclick="generate('Epidemiology')">Epidemiology (5 Topics)</button>
+            <button class="btn-env" onclick="generate('Environmental')">Environmental Health (5 Topics)</button>
+            <button class="btn-soc" onclick="generate('SocialScience')">Social Science (5 Topics)</button>
+            <button class="btn-clin" onclick="generate('Clinical')">Clinical Research (5 Topics)</button>
+        </div>
+
+        <div id="resultsArea"></div>
+    </div>
+
+    <section class="support-hero">
+        <div style="font-size: 2em; color: var(--primary); margin-bottom: 20px; font-weight: bold;">☕ Support Daniel's Research Effort</div>
+        <p style="color: #666; max-width: 700px; margin: 0 auto;">Help maintain this academic hunt engine. Your contribution supports students across Africa!</p>
+        <div class="payment-container">
+            <div class="payment-card orange-card">
+                <span class="payment-name">🍊 ORANGE MONEY</span>
+                <div class="payment-number">078945003</div>
+            </div>
+            <div class="payment-card afri-card">
+                <span class="payment-name">💰 AFRIMONEY</span>
+                <div class="payment-number">090763194</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="footer">
+        <p style="color: white; font-weight: bold; font-size: 1.3em; margin-bottom: 5px;">Created by Daniel Kamara</p>
+        <p style="color: #48bb78; font-weight: bold; font-size: 1.1em; margin-top: 0;">Final Year Biostatistics and Epidemiology</p>
+        <p style="margin-top: 5px; opacity: 0.8;">Director of Research, NUPHA (2025/2026)</p>
+        <div class="tribute-box">
+            <p>"Special thanks to <strong>Mr. Joseph Lamin</strong> for his immersive guides, unwavering encouragement, and mentorship which served as the cornerstone for Daniel Research Topic Hunt V 1.0."</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const africaCountries = ["Algeria", "Angola", "Benin", "Botswana", "Burkina Faso", "Burundi", "Cabo Verde", "Cameroon", "Central African Republic", "Chad", "Comoros", "Congo (Brazzaville)", "Congo (Kinshasa)", "Djibouti", "Egypt", "Equatorial Guinea", "Eritrea", "Eswatini", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Ivory Coast", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda", "Sao Tome and Principe", "Senegal", "Seychelles", "Sierra Leone", "Somalia", "South Africa", "South Sudan", "Sudan", "Tanzania", "Togo", "Tunisia", "Uganda", "Zambia", "Zimbabwe"];
+    const africaData = {
+        "Sierra Leone": {
+            "Southern Province": ["Bo District", "Bonthe District", "Moyamba District", "Pujehun District"],
+            "Eastern Province": ["Kenema District", "Kailahun District", "Kono District"],
+            "Northern Province": ["Bombali District", "Tonkolili District", "Koinadugu District", "Falaba District"],
+            "North-West Province": ["Port Loko District", "Kambia District", "Karene District"],
+            "Western Area": ["Western Area Urban", "Western Area Rural"]
+        },
+        "Nigeria": { "South West": ["Lagos State", "Oyo State"], "North": ["Kano State"] }
+    };
+    const slDistricts = ["Bo District", "Bombali District", "Bonthe District", "Falaba District", "Kailahun District", "Kambia District", "Kenema District", "Koinadugu District", "Kono District", "Moyamba District", "Port Loko District", "Pujehun District", "Tonkolili District", "Western Area Rural", "Western Area Urban", "Karene District"];
+    const slChiefdoms = {
+        "Bo District": ["Kakua", "Baoma", "Tikonko", "Lugbu", "Bumpe Ngao", "Valunia"],
+        "Kenema District": ["Nongowa", "Dama", "Gaura", "Lower Bambara", "Tunkia"],
+        "Western Area Urban": ["Central", "East End", "West End", "Lumley", "Kissy"],
+        "Western Area Rural": ["Waterloo", "York", "Newton", "Tombo"]
+    };
+
+    window.onload = function() {
+        const cSel = document.getElementById('country');
+        africaCountries.sort().forEach(c => cSel.innerHTML += `<option value="${c}">${c}</option>`);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    };
+
+    function handleCountryChange() {
+        const c = document.getElementById('country').value;
+        const l3 = document.getElementById('level3');
+        hideLevels(3);
+        if(africaData[c]) {
+            l3.style.display = 'block'; l3.innerHTML = '<option value="">2. Province / Region</option>';
+            Object.keys(africaData[c]).forEach(r => l3.innerHTML += `<option value="${r}">${r}</option>`);
+        }
+    }
+
+    function handleLevel3Change() {
+        const c = document.getElementById('country').value;
+        const r = document.getElementById('level3').value;
+        const l4 = document.getElementById('level4');
+        hideLevels(4);
+        if(africaData[c] && africaData[c][r]) {
+            l4.style.display = 'block'; l4.innerHTML = '<option value="">3. District / LGA</option>';
+            africaData[c][r].forEach(d => l4.innerHTML += `<option value="${d}">${d}</option>`);
+        }
+    }
+
+    function handleLevel4Change() {
+        const d = document.getElementById('level4').value;
+        const l5 = document.getElementById('level5');
+        hideLevels(5);
+        if(slChiefdoms[d]) {
+            l5.style.display = 'block'; l5.innerHTML = '<option value="">4. Chiefdom / Town</option>';
+            slChiefdoms[d].forEach(t => l5.innerHTML += `<option value="${t}">${t}</option>`);
+        }
+    }
+
+    function hideLevels(s) { for(let i=s; i<=5; i++) { let el = document.getElementById('level' + i); if(el) { el.style.display = 'none'; el.innerHTML = ''; } } }
+
+    const engine = {
+        prefixes: {
+            Biostatistics: ["A Statistical Evaluation of", "Predictive Modeling of", "A Multivariate Regression on", "Survival Analysis of"],
+            Epidemiology: ["Prevalence and Risk Factors of", "Epidemiological Trends of", "A Cross-Sectional Study on", "Incidence and Patterns of"],
+            Environmental: ["Bacteriological Quality of Water in", "Impact of Climate Change on", "Assessment of Solid Waste Management and"],
+            SocialScience: ["Socio-Cultural Beliefs and Stigma surrounding", "Gender Disparities and Health-Seeking Behavior for", "Community Perceptions and Behavioral Change towards"],
+            Clinical: ["Clinical Outcomes and Management of", "Evaluation of Drug Efficacy and Safety for", "Treatment Adherence and Prognostic Factors in"]
+        },
+        issues: ["Malaria", "Hypertension", "Type 2 Diabetes", "Maternal Mortality", "Cholera Outbreaks", "Teenage Pregnancy", "HIV/AIDS Stigma", "Childhood Stunting", "Sickle Cell Disease", "Lassa Fever"],
+        groups: ["Pregnant Women", "Children Under Five", "Healthcare Workers", "Adolescents", "Rural Farmers", "Lactating Mothers", "Commercial Motorcyclists"]
+    };
+
+    let generatedTopicsData = [];
+
+    function generate(cat) {
+        const vil = document.getElementById('customVillage').value || "Community";
+        const l5 = document.getElementById('level5').value || "";
+        const l4 = document.getElementById('level4').value || "";
+        const l3 = document.getElementById('level3').value || "";
+        const country = document.getElementById('country').value || "Selected Area";
+        const loc = `${vil}, ${l5 ? l5 + ', ' : ''}${l4 ? l4 + ', ' : ''}${l3 ? l3 + ', ' : ''}${country}`;
+
+        const container = document.getElementById('resultsArea');
+        container.innerHTML = `<h2 style="color:var(--primary); margin: 30px 0 20px 0;">Generated Research Hunt (5 Proposals):</h2>`;
+        generatedTopicsData = [];
+
+        for(let i=0; i<5; i++) {
+            const issue = engine.issues[Math.floor(Math.random() * engine.issues.length)];
+            const group = engine.groups[Math.floor(Math.random() * engine.groups.length)];
+            const pre = engine.prefixes[cat][Math.floor(Math.random() * engine.prefixes[cat].length)];
+            const title = `${pre} ${issue} among ${group} in ${loc}`;
+            
+            const topicObj = {
+                id: i + 1,
+                title, cat, loc, issue, group,
+                introduction: `The research focuses on the impact of ${issue} within ${loc}, specifically targeting ${group}. It explores ${cat.toLowerCase()} determinants to provide data-driven public health evidence for Njala University scholars.`,
+                problem: `Despite healthcare advancements, ${issue} remains a critical burden for ${group} in ${loc}. Current interventions lack the granular ${cat.toLowerCase()} insights needed for effective mitigation in this community.`,
+                aim: `To investigate the specific ${cat.toLowerCase()} drivers and prevalence of ${issue} among ${group} in ${loc}.`,
+                objectives: [
+                    `To evaluate the current prevalence and clinical patterns of ${issue} among ${group} in ${loc}.`,
+                    `To identify the socio-demographic and environmental ${cat.toLowerCase()} risk factors associated with ${issue}.`,
+                    `To assess the knowledge and management practices of the target population regarding ${issue}.`,
+                    `To provide actionable recommendations to the Ministry of Health for localized control of ${issue} in ${loc}.`
+                ],
+                questions: [
+                    `What is the current prevalence of ${issue} in ${loc}?`,
+                    `Which ${cat.toLowerCase()} variables are most strongly associated with ${issue} outcomes?`,
+                    `What are the specific local challenges in managing ${issue} among ${group}?`
+                ],
+                significance: `This study provides a vital dataset for the Sierra Leonean DHMT and Njala University, fostering localized public health strategies for ${issue}.`,
+                scope: `Focus is on ${group} in ${loc} for the 2025/2026 academic year.`,
+                limitations: `The study may be restricted by participant recall bias and limited historical medical data in ${loc}.`
+            };
+            generatedTopicsData.push(topicObj);
+
+            container.innerHTML += `
+                <div class="topic-card">
+                    <h2>${topicObj.id}. ${topicObj.title}</h2>
+                    <div class="section-desc"><h4>1. Introduction</h4><p>${topicObj.introduction}</p></div>
+                    <div class="section-desc"><h4>2. Problem Statement</h4><p>${topicObj.problem}</p></div>
+                    <div class="section-desc"><h4>3. General Aim</h4><p>${topicObj.aim}</p></div>
+                    <div class="section-desc"><h4>4. Specific Objectives (4)</h4><ul>${topicObj.objectives.map(o => `<li>${o}</li>`).join('')}</ul></div>
+                    <div class="section-desc"><h4>5. Research Questions</h4><ul>${topicObj.questions.map(q => `<li>${q}</li>`).join('')}</ul></div>
+                    <div class="section-desc"><h4>6. Significance</h4><p>${topicObj.significance}</p></div>
+                    <div class="section-desc"><h4>7. Scope</h4><p>${topicObj.scope}</p></div>
+                    <div class="section-desc"><h4>8. Limitations</h4><p>${topicObj.limitations}</p></div>
+
+                    <div class="action-btns">
+                        <button class="view-btn" onclick="showPreview(${i})">📖 PREVIEW BLUEPRINT</button>
+                        <div class="download-group">
+                            <button class="download-t-btn">📥 DOWNLOAD TOPIC</button>
+                            <div class="format-dropdown">
+                                <button onclick="downloadTopic(${i}, 'pdf')">PDF</button>
+                                <button onclick="downloadTopic(${i}, 'doc')">WORD</button>
+                                <button onclick="downloadTopic(${i}, 'xlsx')">EXCEL</button>
+                            </div>
+                        </div>
+                        <div class="download-group">
+                            <button class="download-g-btn">📥 DOWNLOAD GUIDE</button>
+                            <div class="format-dropdown">
+                                <button onclick="downloadGuide(${i}, 'pdf')">PDF</button>
+                                <button onclick="downloadGuide(${i}, 'doc')">WORD</button>
+                                <button onclick="downloadGuide(${i}, 'xlsx')">EXCEL</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        window.scrollTo({ top: 500, behavior: 'smooth' });
+    }
+
+    function showPreview(i) {
+        const t = generatedTopicsData[i];
+        document.getElementById('guideInner').innerHTML = `
+            <h1 style="color:var(--primary)">Hunt Blueprint: ${t.title}</h1>
+            <div class="guide-step"><h3>Chapter 1: Intro</h3><p>${t.introduction}</p></div>
+            <div class="guide-step"><h3>Chapter 2: Literature</h3><p>Review of global and African trends of ${t.issue} among ${t.group}.</p></div>
+            <div class="guide-step"><h3>Chapter 3: Methodology</h3><p>Design: Cross-sectional. Analysis: SPSS Multivariate Regression.</p></div>
+        `;
+        document.getElementById('guideOverlay').style.display = 'block';
+    }
+
+    function closeGuide() { document.getElementById('guideOverlay').style.display = 'none'; }
+
+    function downloadTopic(i, format) {
+        const t = generatedTopicsData[i];
+        let content = `DANIEL RESEARCH TOPIC HUNT V 1.0\n\nTOPIC: ${t.title}\n\n1. INTRODUCTION: ${t.introduction}\n\n2. PROBLEM: ${t.problem}\n\n3. AIM: ${t.aim}\n\n4. OBJECTIVES:\n${t.objectives.join('\n')}\n\nSIGNIFICANCE: ${t.significance}\n\nCreated by Daniel Kamara`;
+        if(format === 'doc') saveDoc(content, `Hunt_Topic_${t.id}.doc`);
+        else if(format === 'pdf') savePdf(content, `Hunt_Topic_${t.id}.pdf`);
+        else saveXlsx([{ Topic: t.title, Location: t.loc }], `Hunt_Topic_${t.id}.xlsx`);
+    }
+
+    function downloadGuide(i, format) {
+        const t = generatedTopicsData[i];
+        let content = `RESEARCH GUIDE: ${t.title}\n\nCHAPTER 1-5 PLAN\n\nIntro: ${t.introduction}\nMethodology: Setting: ${t.loc}, Design: Cross-sectional.`;
+        if(format === 'doc') saveDoc(content, `Hunt_Guide_${t.id}.doc`);
+        else if(format === 'pdf') savePdf(content, `Hunt_Guide_${t.id}.pdf`);
+        else saveXlsx([{ Chapter: "Intro", Content: t.introduction }], `Hunt_Guide_${t.id}.xlsx`);
+    }
+
+    function saveDoc(c, f) { const b = new Blob(['\ufeff', c], { type: 'application/msword' }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = f; l.click(); }
+    function savePdf(c, f) { const { jsPDF } = window.jspdf; const doc = new jsPDF(); const splitText = doc.splitTextToSize(c, 180); doc.text(splitText, 10, 10); doc.save(f); }
+    function saveXlsx(d, f) { const ws = XLSX.utils.json_to_sheet(d); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Research"); XLSX.writeFile(wb, f); }
+</script>
+
+</body>
+</html>
